@@ -52,6 +52,27 @@ if gerar:
     data_inicio = datas[0]
     meses = [(d - data_inicio).days / 30.44 for d in datas]
 
+    # -------------------------
+    # TAXA DE DECLÍNIO DA TFG
+    # -------------------------
+    if len(tfgs) >= 2:
+        # Regressão linear para encontrar declínio médio
+        coef = np.polyfit(meses, tfgs, 1)  # coef[0] = inclinação
+        declinio_mes = coef[0]
+        declinio_ano = declinio_mes * 12
+
+        st.subheader("📉 Taxa de Declínio da TFG")
+        st.write(f"**Declínio médio mensal:** {declinio_mes:.2f} mL/min/mês")
+        st.write(f"**Declínio médio anual:** {declinio_ano:.2f} mL/min/ano")
+
+        # Exibir texto resumido
+        if declinio_mes < -0.8:
+            st.warning(f"⚠️ Progressão rápida: perda de {abs(declinio_mes):.2f} mL/min/mês")
+        elif declinio_mes < -0.4:
+            st.info(f"🔎 Progressão moderada: perda de {abs(declinio_mes):.2f} mL/min/mês")
+        else:
+            st.success(f"🟢 Progressão lenta: perda de {abs(declinio_mes):.2f} mL/min/mês")
+    
     # Curvas modelo
     x_modelo = np.arange(0, 61, 1)
     declinio_lento = 90 - 0.33 * x_modelo
@@ -113,3 +134,4 @@ if gerar:
         file_name="relatorio_tfg.pdf",
         mime="application/pdf"
     )
+
