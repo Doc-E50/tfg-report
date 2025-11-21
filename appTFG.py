@@ -1,12 +1,12 @@
-# App interativo com Streamlit para visualizaÁ„o de TFG
+# App interativo com Streamlit para visualiza√ß√£o de TFG
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
 st.set_page_config(page_title="Curva de TFG do Paciente", layout="centered")
-st.title("?? Curva de DeclÌnio da TFG")
-st.markdown("Insira as estimativas de TFG com datas para visualizar a progress„o renal do paciente comparada com cen·rios modelo.")
+st.title("?? Curva de Decl√≠nio da TFG")
+st.markdown("Insira as estimativas de TFG com datas para visualizar a progress√£o renal do paciente comparada com cen√°rios modelo.")
 
 # Entrada de dados
 with st.form("dados_tfg"):
@@ -19,10 +19,10 @@ with st.form("dados_tfg"):
         with col2:
             tfg = st.number_input(f"TFG (mL/min) {i+1}", min_value=0.0, max_value=150.0, value=90.0, step=0.1, key=f"tfg_{i}")
         dados.append((data, tfg))
-    submitted = st.form_submit_button("Gerar Gr·fico")
+    submitted = st.form_submit_button("Gerar Gr√°fico")
 
 if submitted:
-    dados.sort()  # garantir ordem cronolÛgica
+    dados.sort()  # garantir ordem cronol√≥gica
     datas = [datetime.datetime.combine(d, datetime.time()) for d, _ in dados]
     tfgs = [v for _, v in dados]
     data_inicial = datas[0]
@@ -35,24 +35,24 @@ if submitted:
     def declinio_moderado(m): return tfg_inicial - (0.83 * m)
     def declinio_rapido(m): return tfg_inicial - (1.25 * m)
 
-    # Gr·fico
+    # Gr√°fico
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(meses_modelo, declinio_lento(meses_modelo), '--', label='DeclÌnio lento (~4 mL/ano)')
-    ax.plot(meses_modelo, declinio_moderado(meses_modelo), '-', label='DeclÌnio moderado (~10 mL/ano)')
-    ax.plot(meses_modelo, declinio_rapido(meses_modelo), ':', label='DeclÌnio r·pido (~15 mL/ano)')
+    ax.plot(meses_modelo, declinio_lento(meses_modelo), '--', label='Decl√≠nio lento (~4 mL/ano)')
+    ax.plot(meses_modelo, declinio_moderado(meses_modelo), '-', label='Decl√≠nio moderado (~10 mL/ano)')
+    ax.plot(meses_modelo, declinio_rapido(meses_modelo), ':', label='Decl√≠nio r√°pido (~15 mL/ano)')
     ax.plot(meses_paciente, tfgs, 'o-r', linewidth=2.5, label='Paciente')
 
     ax.axhline(60, color='gray', linestyle='--', lw=0.5)
     ax.axhline(30, color='gray', linestyle='--', lw=0.5)
-    ax.text(1, 61, "Est·gio 2", fontsize=8, color='gray')
-    ax.text(1, 31, "Est·gio 3b", fontsize=8, color='gray')
+    ax.text(1, 61, "Est√°gio 2", fontsize=8, color='gray')
+    ax.text(1, 31, "Est√°gio 3b", fontsize=8, color='gray')
 
-    ax.set_title('DeclÌnio da TFG estimada ao longo do tempo')
+    ax.set_title('Decl√≠nio da TFG estimada ao longo do tempo')
     ax.set_xlabel('Meses desde o primeiro exame')
-    ax.set_ylabel('TFG (mL/min/1.73m≤)')
+    ax.set_ylabel('TFG (mL/min/1.73m¬≤)')
     ax.set_ylim(0, 100)
     ax.grid(True)
     ax.legend()
     st.pyplot(fig)
 
-    st.success("? Gr·fico gerado com sucesso!")
+    st.success("? Gr√°fico gerado com sucesso!")
