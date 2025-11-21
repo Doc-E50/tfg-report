@@ -77,38 +77,43 @@ if gerar:
 
     st.success("✅ Gráfico gerado com sucesso!")
 
-    # -------------------------
-    # GERAÇÃO DO PDF
-    # -------------------------
-    st.header("📄 Download do Relatório em PDF")
+# -------------------------
+# GERAÇÃO DO PDF
+# -------------------------
+from reportlab.lib.utils import ImageReader
+st.header("📄 Download do Relatório em PDF")
 
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
+buffer = BytesIO()
+c = canvas.Canvas(buffer, pagesize=A4)
 
-    # Cabeçalho
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, 800, "Relatório de Evolução da TFG")
+# Cabeçalho
+c.setFont("Helvetica-Bold", 16)
+c.drawString(50, 800, "Relatório de Evolução da TFG")
 
-    # Dados do paciente
-    c.setFont("Helvetica", 12)
-    c.drawString(50, 770, f"Nome: {nome}")
-    c.drawString(50, 750, f"Idade: {idade}")
-    c.drawString(50, 730, f"Doença de Base: {doenca_base}")
+# Dados do paciente
+c.setFont("Helvetica", 12)
+c.drawString(50, 770, f"Nome: {nome}")
+c.drawString(50, 750, f"Idade: {idade}")
+c.drawString(50, 730, f"Doença de Base: {doenca_base}")
 
-    # Inserir o gráfico
-    img_buffer = BytesIO()
-    fig.savefig(img_buffer, format="png", dpi=150, bbox_inches="tight")
-    img_buffer.seek(0)
-    c.drawImage(img_buffer, 40, 380, width=520, height=300)
+# Inserir o gráfico
+img_buffer = BytesIO()
+fig.savefig(img_buffer, format="png", dpi=150, bbox_inches="tight")
+img_buffer.seek(0)
 
-    c.showPage()
-    c.save()
+# CONVERSÃO CORRETA PARA IMAGE READER
+img_reader = ImageReader(img_buffer)
 
-    buffer.seek(0)
+c.drawImage(img_reader, 40, 380, width=520, height=300)
 
-    st.download_button(
-        label="📥 Baixar PDF",
-        data=buffer,
-        file_name="relatorio_tfg.pdf",
-        mime="application/pdf"
-    )
+c.showPage()
+c.save()
+
+buffer.seek(0)
+
+st.download_button(
+    label="📥 Baixar PDF",
+    data=buffer,
+    file_name="relatorio_tfg.pdf",
+    mime="application/pdf"
+)
