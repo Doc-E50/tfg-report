@@ -1,58 +1,114 @@
-# App interativo com Streamlit para visualização de TFG
+# -*- coding: utf-8 -*-
+
 import streamlit as st
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import datetime
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 
-st.set_page_config(page_title="Curva de TFG do Paciente", layout="centered")
-st.title("?? Curva de Declínio da TFG")
-st.markdown("Insira as estimativas de TFG com datas para visualizar a progressão renal do paciente comparada com cenários modelo.")
+st.set_page_config(page_title="Relatório de TFG", layout="centered")
+st.title("📉 Gerador de Relatório de TFG")
 
-# Entrada de dados
-with st.form("dados_tfg"):
-    n = st.number_input("Quantas medidas de TFG deseja inserir?", min_value=2, max_value=20, value=5)
-    dados = []
+st.markdown("Preencha os dados do paciente e os valores de TFG para gerar o gráfico e o PDF.")
+
+# -------------------------
+# CAMPOS DO PACIENTE
+# -------------------------
+st.header("🧑 Dados do Paciente")
+
+nome = st.text_input("Nome completo")
+idade = st.number_input("Idade", min_value=0, max_value=120, value=60)
+doenca_base = st.text_input("Doença de Base (ex: Diabetes Mellitus, HAS, DRC...)")
+
+# -------------------------
+# ENTRADA DE TFG
+# -------------------------
+st.header("📅 Valores de TFG")
+
+n = st.number_input("Quantas medidas deseja inserir?", min_value=2, max_value=20, value=5)
+dados = []
+
+with st.form("dados_form"):
     for i in range(n):
-        col1, col2 = st.columns([2, 1])
+        col1, col2 = st.columns(2)
         with col1:
             data = st.date_input(f"Data {i+1}", key=f"data_{i}")
         with col2:
-            tfg = st.number_input(f"TFG (mL/min) {i+1}", min_value=0.0, max_value=150.0, value=90.0, step=0.1, key=f"tfg_{i}")
+            tfg = st.number_input(f"TFG estimada {i+1} (mL/min)", min_value=0.0, max_value=150.0, key=f"tfg_{i}")
         dados.append((data, tfg))
-    submitted = st.form_submit_button("Gerar Gráfico")
+    gerar = st.form_submit_button("Gerar Relatório")
 
-if submitted:
-    dados.sort()  # garantir ordem cronológica
+# -------------------------
+# GERAÇÃO DO GRÁFICO
+# -------------------------
+if gerar:
+
+    # Organizar dados
+    dados.sort()
     datas = [datetime.datetime.combine(d, datetime.time()) for d, _ in dados]
     tfgs = [v for _, v in dados]
-    data_inicial = datas[0]
-    meses_paciente = [(d - data_inicial).days / 30.44 for d in datas]
+    data_inicio = datas[0]
+    meses = [(d - data_inicio).days / 30.44 for d in datas]
 
-    # Modelos
-    tfg_inicial = 90
-    meses_modelo = np.arange(0, 61, 1)
-    def declinio_lento(m): return tfg_inicial - (0.33 * m)
-    def declinio_moderado(m): return tfg_inicial - (0.83 * m)
-    def declinio_rapido(m): return tfg_inicial - (1.25 * m)
+    # Curvas modelo
+    x_modelo = np.arange(0, 61, 1)
+    declinio_lento = 90 - 0.33 * x_modelo
+    declinio_moderado = 90 - 0.83 * x_modelo
+    declinio_rapido = 90 - 1.25 * x_modelo
 
-    # Gráfico
+    # Plot do gráfico
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(meses_modelo, declinio_lento(meses_modelo), '--', label='Declínio lento (~4 mL/ano)')
-    ax.plot(meses_modelo, declinio_moderado(meses_modelo), '-', label='Declínio moderado (~10 mL/ano)')
-    ax.plot(meses_modelo, declinio_rapido(meses_modelo), ':', label='Declínio rápido (~15 mL/ano)')
-    ax.plot(meses_paciente, tfgs, 'o-r', linewidth=2.5, label='Paciente')
-
+    ax.plot(x_modelo, declinio_lento, '--', label='Lento (~4 mL/ano)', color='blue')
+    ax.plot(x_modelo, declinio_moderado, '-', label='Moderado (~10 mL/ano)', color='green')
+    ax.plot(x_modelo, declinio_rapido, ':', label='Rápido (~15 mL/ano)', color='orange')
+    ax.plot(meses, tfgs, 'o-r', label='Paciente', linewidth=2.5)
     ax.axhline(60, color='gray', linestyle='--', lw=0.5)
     ax.axhline(30, color='gray', linestyle='--', lw=0.5)
-    ax.text(1, 61, "Estágio 2", fontsize=8, color='gray')
-    ax.text(1, 31, "Estágio 3b", fontsize=8, color='gray')
-
-    ax.set_title('Declínio da TFG estimada ao longo do tempo')
+    ax.set_title('Evolução da TFG estimada')
     ax.set_xlabel('Meses desde o primeiro exame')
     ax.set_ylabel('TFG (mL/min/1.73m²)')
     ax.set_ylim(0, 100)
     ax.grid(True)
     ax.legend()
+
     st.pyplot(fig)
 
-    st.success("? Gráfico gerado com sucesso!")
+    st.success("✅ Gráfico gerado com sucesso!")
+
+    # -------------------------
+    # GERAÇÃO DO PDF
+    # -------------------------
+    st.header("📄 Download do Relatório em PDF")
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    # Cabeçalho
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, 800, "Relatório de Evolução da TFG")
+
+    # Dados do paciente
+    c.setFont("Helvetica", 12)
+    c.drawString(50, 770, f"Nome: {nome}")
+    c.drawString(50, 750, f"Idade: {idade}")
+    c.drawString(50, 730, f"Doença de Base: {doenca_base}")
+
+    # Inserir o gráfico
+    img_buffer = BytesIO()
+    fig.savefig(img_buffer, format="png", dpi=150, bbox_inches="tight")
+    img_buffer.seek(0)
+    c.drawImage(img_buffer, 40, 380, width=520, height=300)
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+
+    st.download_button(
+        label="📥 Baixar PDF",
+        data=buffer,
+        file_name="relatorio_tfg.pdf",
+        mime="application/pdf"
+    )
