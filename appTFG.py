@@ -115,6 +115,14 @@ if gerar:
     c.drawString(50, 770, f"Nome: {nome}")
     c.drawString(50, 750, f"Idade: {idade}")
     c.drawString(50, 730, f"Doença de Base: {doenca_base}")
+    
+    # Taxa de declínio
+    declinio_texto_mes = f"Declínio médio mensal: {declinio_mes:.2f} mL/min/mês"
+    declinio_texto_ano = f"Declínio médio anual: {declinio_ano:.2f} mL/min/ano"
+
+    c.drawString(50, 700, declinio_texto_mes)
+    c.drawString(50, 680, declinio_texto_ano)
+
 
     # Inserir gráfico
     img_buffer = BytesIO()
@@ -134,4 +142,5 @@ if gerar:
         file_name="relatorio_tfg.pdf",
         mime="application/pdf"
     )
+
 
