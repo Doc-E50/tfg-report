@@ -73,11 +73,13 @@ if gerar:
         else:
             st.success(f"🟢 Progressão lenta: perda de {abs(declinio_mes):.2f} mL/min/mês")
     
-    # Curvas modelo
-    x_modelo = np.arange(0, 61, 1)
-    declinio_lento = 90 - 0.33 * x_modelo
-    declinio_moderado = 90 - 0.83 * x_modelo
-    declinio_rapido = 90 - 1.25 * x_modelo
+    # Curvas modelo ancoradas na TFG inicial do paciente
+    tfg_inicial = tfgs[0]
+
+    x_modelo = np.arange(0, 61, 1)  # meses
+    declinio_lento = tfg_inicial - 0.33 * x_modelo
+    declinio_moderado = tfg_inicial - 0.83 * x_modelo
+    declinio_rapido = tfg_inicial - 1.25 * x_modelo
 
     # Plot do gráfico
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -142,5 +144,6 @@ if gerar:
         file_name="relatorio_tfg.pdf",
         mime="application/pdf"
     )
+
 
 
